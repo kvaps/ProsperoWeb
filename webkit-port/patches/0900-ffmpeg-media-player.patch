@@ -37,7 +37,7 @@ new file mode 100644
 index 000000000..dd11ce899
 --- /dev/null
 +++ b/Source/WebCore/platform/FFmpeg.cmake
-@@ -0,0 +1,61 @@
+@@ -0,0 +1,65 @@
 +# ffmpeg media engine (USE_FFMPEG): software playback of progressive media
 +# and HLS through libavformat/libavcodec, and Media Source Extensions
 +# (platform/graphics/ffmpeg/mse, compiled to nothing without
@@ -85,7 +85,11 @@ index 000000000..dd11ce899
 +    list(APPEND WebCore_LIBRARIES ${FFMPEG_${_ffmpeg_var}_LIBRARY})
 +endforeach ()
 +list(APPEND WebCore_LIBRARIES OpenSSL::SSL OpenSSL::Crypto Threads::Threads m)
-+list(APPEND WebCore_LIBRARIES "/home/tarmo/prosperoweb-av1-build/ProsperoWeb/third_party/ps5-prefix/lib/libdav1d.a")
++# dav1d enables ffmpeg's AV1 decoder; optional, linked from the prefix if built.
++find_library(FFMPEG_DAV1D_LIBRARY NAMES dav1d)
++if (FFMPEG_DAV1D_LIBRARY)
++    list(APPEND WebCore_LIBRARIES ${FFMPEG_DAV1D_LIBRARY})
++endif ()
 +
 +# Audio output through SDL2 (the PS5 port's sceAudioOut driver) when the
 +# SDK provides it; otherwise the engine plays silently (NullAudioSink).

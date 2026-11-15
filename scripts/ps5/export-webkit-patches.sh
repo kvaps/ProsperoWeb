@@ -35,7 +35,6 @@ TOPICS=(
     "0018-webkit-ipc-launch-trace|Source/WebKit/UIProcess/Launcher/ProcessLauncher.cpp Source/WebKit/UIProcess/AuxiliaryProcessProxy.cpp Source/WebKit/Platform/IPC/unix/ConnectionUnix.cpp Source/WebKit/Platform/IPC/unix/UnixMessage.h Source/WebKit/Platform/IPC/Connection.cpp Source/WebKit/UIProcess/CoordinatedGraphics/DrawingAreaProxyCoordinatedGraphics.cpp Source/WebKit/UIProcess/skia/BackingStoreSkia.cpp Source/WebCore/platform/unix/SharedMemoryUnix.cpp Source/WebKit/NetworkProcess/NetworkConnectionToWebProcess.cpp Source/WebKit/NetworkProcess/curl/NetworkSessionCurl.cpp Source/WebKit/NetworkProcess/NetworkResourceLoader.cpp"
     # Generated from webkit-port/media/ffmpeg: edit there, then run
     # webkit-port/media/sync-to-tree.sh (which calls this script).
-    "0023-webkit-existing-fixes|Source/WebKit/NetworkProcess/cache/NetworkCacheDataCurl.cpp Source/WebKit/UIProcess/API/APIContentRuleListStore.cpp"
     "0900-ffmpeg-media-player|Source/WebCore/PlatformPlayStation.cmake Source/WebCore/platform/FFmpeg.cmake Source/WebCore/platform/graphics/MediaPlayer.cpp Source/WebCore/platform/graphics/MediaPlayer.h Source/WebCore/platform/graphics/MediaPlayerEnums.h Source/WebKit/Shared/WebCoreArgumentCoders.serialization.in Source/WebKit/WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp $(cd "${ROOT}/webkit-port/media/ffmpeg" && printf 'Source/WebCore/platform/graphics/ffmpeg/%s ' *.h *.cpp mse/*.h mse/*.cpp)"
 )
 
