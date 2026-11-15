@@ -25,15 +25,17 @@ TOPICS=(
     "0009-webkit-static-injected-bundle|Source/WebKit/WebProcess/InjectedBundle/playstation/InjectedBundlePlayStation.cpp"
     "0010-webcore-timing-function-destructors|Source/WebCore/platform/animation/TimingFunction.h Source/WebCore/platform/animation/TimingFunction.cpp"
     "0011-webkit-playstation-page-api|Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.h Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.cpp Source/WebKit/UIProcess/playstation/PlayStationWebView.cpp"
-    "0012-webcore-playstation-adwaita-theme|Source/WTF/wtf/PlatformUse.h Source/WebCore/CMakeLists.txt Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp Source/WebCore/platform/playstation/ThemePlayStation.cpp Source/WebCore/platform/playstation/ScrollbarThemePlayStation.cpp Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp"
+    "0012-webcore-playstation-adwaita-theme|Source/WTF/wtf/PlatformUse.h Source/WebCore/CMakeLists.txt Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp Source/WebCore/rendering/playstation/RenderThemePlayStation.h Source/WebCore/platform/playstation/ThemePlayStation.cpp Source/WebCore/platform/playstation/ScrollbarThemePlayStation.cpp Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp"
     "0013-webcore-no-gl-compositing|Source/WebCore/rendering/RenderLayerCompositor.cpp Source/WebCore/dom/Document.cpp Source/WebKit/WebProcess/WebPage/CoordinatedGraphics/DrawingAreaCoordinatedGraphics.cpp Source/WebKit/WebProcess/playstation/WebProcessPlayStation.cpp"
     "0014-wtf-redblacktree-unlink-removed-node|Source/WTF/wtf/RedBlackTree.h"
     "0015-webcore-skia-last-resort-font|Source/WebCore/platform/graphics/skia/FontCacheSkia.cpp"
     "0016-webkit-playstation-user-agent|Source/WebKit/WebProcess/WebPage/playstation/WebPagePlayStation.cpp Source/WebCore/platform/playstation/UserAgentPlayStation.cpp"
     "0017-webcore-mse-export-macro|Source/WebCore/platform/graphics/MediaSourcePrivate.h"
+    "0022-webkit-playstation-native-select|Source/WebKit/UIProcess/playstation/PageClientImpl.cpp"
     "0018-webkit-ipc-launch-trace|Source/WebKit/UIProcess/Launcher/ProcessLauncher.cpp Source/WebKit/UIProcess/AuxiliaryProcessProxy.cpp Source/WebKit/Platform/IPC/unix/ConnectionUnix.cpp Source/WebKit/Platform/IPC/unix/UnixMessage.h Source/WebKit/Platform/IPC/Connection.cpp Source/WebKit/UIProcess/CoordinatedGraphics/DrawingAreaProxyCoordinatedGraphics.cpp Source/WebKit/UIProcess/skia/BackingStoreSkia.cpp Source/WebCore/platform/unix/SharedMemoryUnix.cpp Source/WebKit/NetworkProcess/NetworkConnectionToWebProcess.cpp Source/WebKit/NetworkProcess/curl/NetworkSessionCurl.cpp Source/WebKit/NetworkProcess/NetworkResourceLoader.cpp"
     # Generated from webkit-port/media/ffmpeg: edit there, then run
     # webkit-port/media/sync-to-tree.sh (which calls this script).
+    "0023-webkit-existing-fixes|Source/WebKit/NetworkProcess/cache/NetworkCacheDataCurl.cpp Source/WebKit/UIProcess/API/APIContentRuleListStore.cpp"
     "0900-ffmpeg-media-player|Source/WebCore/PlatformPlayStation.cmake Source/WebCore/platform/FFmpeg.cmake Source/WebCore/platform/graphics/MediaPlayer.cpp Source/WebCore/platform/graphics/MediaPlayer.h Source/WebCore/platform/graphics/MediaPlayerEnums.h Source/WebKit/Shared/WebCoreArgumentCoders.serialization.in Source/WebKit/WebProcess/GPU/media/MediaPlayerPrivateRemote.cpp $(cd "${ROOT}/webkit-port/media/ffmpeg" && printf 'Source/WebCore/platform/graphics/ffmpeg/%s ' *.h *.cpp mse/*.h mse/*.cpp)"
 )
 

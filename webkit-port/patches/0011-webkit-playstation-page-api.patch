@@ -199,13 +199,32 @@ index 8a0972133..23ccee89a 100644
  
  void WKPagePaint(WKPageRef pageRef, unsigned char* surfaceData, WKSize wkSurfaceSize, WKRect wkPaintRect)
 diff --git a/Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.h b/Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.h
-index 674924662..96fc98abe 100644
+index 674924662..e486064d7 100644
 --- a/Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.h
 +++ b/Source/WebKit/UIProcess/API/C/playstation/WKPagePrivatePlayStation.h
-@@ -38,6 +38,16 @@ WK_EXPORT void WKPageHandleWheelEvent(WKPageRef, WKWheelEvent);
+@@ -27,6 +27,7 @@
+ 
+ #include <WebKit/WKBase.h>
+ #include <WebKit/WKEventPlayStation.h>
++#include <stddef.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -37,6 +38,26 @@ WK_EXPORT void WKPageHandleMouseEvent(WKPageRef, WKMouseEvent);
+ WK_EXPORT void WKPageHandleWheelEvent(WKPageRef, WKWheelEvent);
  
  WK_EXPORT void WKPagePaint(WKPageRef, unsigned char* cairoSurfaceARGB32Data, WKSize surfaceSize, WKRect paintRect);
- 
++// PlayStation UI native select popup bridge. Return false if no menu is open.
++WK_EXPORT bool WKPagePopupMenuInfoPlayStation(WKPageRef, int* count, int* selectedIndex,
++    int* x, int* y, int* width, int* height);
++// Buffer receives a null-terminated UTF-8 label. isSelectable excludes group
++// headings, separators and disabled options. Caller provides labelBytes > 0.
++WK_EXPORT bool WKPagePopupMenuItemPlayStation(WKPageRef, int index, char* label,
++    size_t labelBytes, bool* isSelectable);
++WK_EXPORT void WKPagePopupMenuActivatePlayStation(WKPageRef, int index);
++WK_EXPORT void WKPagePopupMenuCancelPlayStation(WKPageRef);
++
++
 +// PS5 port: draw the page over a transparent base background instead of the
 +// default opaque white (the C counterpart of drawsBackground = NO). Pixels the
 +// page does not paint keep alpha 0 in WKPagePaint's output.
@@ -215,10 +234,9 @@ index 674924662..96fc98abe 100644
 +// PageIdentifier), so the embedder can match what that process reports about
 +// the page (the video overlay tags its players with it). 0 when unknown.
 +WK_EXPORT uint64_t WKPageGetWebPageIdentifierPlayStation(WKPageRef);
-+
+ 
  #ifdef __cplusplus
  }
- #endif
 diff --git a/Source/WebKit/UIProcess/playstation/PlayStationWebView.cpp b/Source/WebKit/UIProcess/playstation/PlayStationWebView.cpp
 index f5ba02041..4587b982e 100644
 --- a/Source/WebKit/UIProcess/playstation/PlayStationWebView.cpp

@@ -1,0 +1,6 @@
+Build: 2026-11-08T15:41:29+00:00
+ProsperoWeb HEAD: 8cfe29c3cbd763c8c832f414f902b68b7d9a09bb
+WebKit HEAD: e049cc7f923ea377af4d92877f9eedaf4ed5a1c0
+be27beee088d8da733d6fa0391bc8e22cd0e9a260d7e7a54d0c0f5534ca2be62  /home/tarmo/prosperoweb-av1-build/ProsperoWeb/build-dist/PRWB00001.zip
+48a55bd55fb74a743721521bd380433a0231064dd9b7cba6be780f2f01adb3c8  /home/tarmo/prosperoweb-av1-build/ProsperoWeb/build-dist/native/PRWB00001/eboot.bin
+222d8bc0b4f8a7dcfd17912b96ab0c1a4541e3c10da972e3bdff21e434952c77  /home/tarmo/prosperoweb-av1-build/ProsperoWeb/build-dist/native/PRWB00001/prosperoweb.elf

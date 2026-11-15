@@ -165,7 +165,7 @@ link_libs() {
     if use_ffmpeg; then
         # pkg-config --static --libs libavformat libavcodec libswscale
         # libswresample libavutil, and SDL2 for the engine's audio sink.
-        printf '%s\n' -lavformat -lbz2 -lavcodec -llzma -lx264 -lswscale -lswresample -lavutil \
+        printf '%s\n' "${PREFIX}/lib/libavformat.a" -lbz2 "${PREFIX}/lib/libavcodec.a" -llzma -lx264 "${PREFIX}/lib/libswscale.a" "${PREFIX}/lib/libswresample.a" "${PREFIX}/lib/libavutil.a" "${PREFIX}/lib/libdav1d.a" \
             -lSDL2 -lSceSystemService -lSceUserService -lScePad -lSceAudioOut -lsamplerate \
             -lSceVideoOut -lSceKeyboard -lSceImeDialog
     fi
