@@ -257,6 +257,9 @@ jobs:
       - name: Package
         env:
           DATA_ZIP: ${{ steps.names.outputs.data-zip }}
+          # CI is a build check, not a pinned release: tolerate upstream filter
+          # list drift (EasyList and friends change their hashes constantly).
+          ADDONS_ALLOW_UNPINNED: "1"
         run: |
           scripts/ci/timed.sh "Package" scripts/ps5/package.sh
           mkdir -p "${ARTIFACTS}"
