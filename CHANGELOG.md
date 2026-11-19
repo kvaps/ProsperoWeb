@@ -4,6 +4,13 @@ All notable changes to ProsperoWeb are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.3.0 - 2026-11-19
+
+### Added
+
+- AV1 video decoding. The ffmpeg media engine now plays AV1 (WebM and MP4), decoded by libdav1d. The PS5 SDK ships ffmpeg without libdav1d, so dav1d and a re-built ffmpeg (with `--enable-libdav1d`) are cross-compiled into the dependency prefix alongside the other dependencies.
+- Native `<select>` dropdowns. Opening a select now shows a controller-driven popup menu with D-pad and right-stick navigation, touchpad scrolling, Cross to choose and Circle to cancel. The closed control keeps the page's styled background instead of the native theme's white fill.
+
 ## v0.2.1 - 2026-11-02
 
 ### Fixed
