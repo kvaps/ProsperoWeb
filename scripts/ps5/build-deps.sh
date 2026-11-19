@@ -73,6 +73,18 @@ LIBWPE_VER=1.16.3
 LIBWPE_URL=https://github.com/WebPlatformForEmbedded/libwpe/releases/download/1.16.3/libwpe-1.16.3.tar.xz
 LIBWPE_SHA=c880fa8d607b2aa6eadde7d6d6302b1396ebc38368fe2332fa20e193c7ee1420
 
+# dav1d (AV1 decoder) and ffmpeg: the SDK ships ffmpeg without libdav1d, so
+# the media engine cannot decode AV1. We build dav1d and re-build ffmpeg with
+# the SDK's own feature set plus --enable-libdav1d into the prefix. nasm is
+# required for the x86 asm in both.
+DAV1D_VER=1.4.3
+DAV1D_URL=https://downloads.videolan.org/pub/videolan/dav1d/1.4.3/dav1d-1.4.3.tar.xz
+DAV1D_SHA=42fe524bcc82ea3a830057178faace22923a79bad3d819a4962d8cfc54c36f19
+
+FFMPEG_VER=7.0.1
+FFMPEG_URL=https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz
+FFMPEG_SHA=bce9eeb0f17ef8982390b1f37711a61b4290dc8c2a0c1a37b5857e85bfb0e4ff
+
 # Host meson (used only if no new enough meson is on PATH).
 MESON_PIP_VER=1.6.1
 
@@ -332,6 +344,50 @@ build_libwpe() {
     meson_build libwpe -Denable-xkb=true -Dbuild-docs=false
 }
 
+build_dav1d() {
+    fetch "${DAV1D_URL}" "dav1d-${DAV1D_VER}.tar.xz" "${DAV1D_SHA}"
+    unpack dav1d "dav1d-${DAV1D_VER}.tar.xz"
+    # Library only; asm stays on (needs nasm) for a usable AV1 decoder.
+    meson_build dav1d -Denable_tools=false -Denable_tests=false
+}
+
+build_ffmpeg() {
+    fetch "${FFMPEG_URL}" "ffmpeg-${FFMPEG_VER}.tar.xz" "${FFMPEG_SHA}"
+    unpack ffmpeg "ffmpeg-${FFMPEG_VER}.tar.xz"
+    local src="${WORK}/ffmpeg/src" bld="${WORK}/ffmpeg/build"
+    run mkdir -p "${bld}"
+    # The feature set mirrors the SDK's own ffmpeg (extracted from its
+    # libavcodec.a configuration string) so the media engine behaves the
+    # same, plus --enable-libdav1d for AV1. pkg-config is our wrapper, so
+    # the dav1d we just built in the prefix is found next to the SDK libs.
+    if [[ ! -f "${bld}/ffbuild/config.mak" ]]; then
+        (cd "${bld}" && run "${src}/configure" \
+            --prefix="${PREFIX}" \
+            --enable-cross-compile \
+            --cross-prefix="${SDK}/bin/prospero-" \
+            --cc="${SDK}/bin/prospero-clang" \
+            --cxx="${SDK}/bin/prospero-clang++" \
+            --nm="${SDK}/bin/prospero-nm" \
+            --ar="${SDK}/bin/prospero-ar" \
+            --ranlib="${SDK}/bin/prospero-ranlib" \
+            --strip="${SDK}/bin/prospero-strip" \
+            --pkg-config="${SCRIPTS}/pkg-config" \
+            --pkg-config-flags=--static \
+            --arch=x86_64 --target-os=freebsd \
+            --enable-static --disable-shared \
+            --enable-gpl --enable-version3 \
+            --enable-openssl --enable-libx264 \
+            --enable-libfreetype --enable-libfribidi \
+            --enable-libharfbuzz --enable-libass \
+            --enable-libdav1d \
+            --disable-debug --disable-doc --disable-programs)
+    fi
+    run make -C "${bld}" -j "${JOBS}"
+    run make -C "${bld}" install
+    grep -q '^CONFIG_LIBDAV1D_DECODER=yes' "${bld}/ffbuild/config.mak" \
+        || die "ffmpeg built without the libdav1d AV1 decoder"
+}
+
 write_manifest() {
     local m="${PREFIX}/MANIFEST.txt"
     {
@@ -346,7 +402,9 @@ write_manifest() {
             freetype "${FREETYPE_VER}" "${BUILD_TIME[freetype]}" \
             harfbuzz "${HARFBUZZ_VER}" "${BUILD_TIME[harfbuzz]}" \
             xkbcommon "${XKBCOMMON_VER}" "${BUILD_TIME[xkbcommon]}" \
-            libwpe "${LIBWPE_VER}" "${BUILD_TIME[libwpe]}"
+            libwpe "${LIBWPE_VER}" "${BUILD_TIME[libwpe]}" \
+            dav1d "${DAV1D_VER}" "${BUILD_TIME[dav1d]}" \
+            ffmpeg "${FFMPEG_VER}" "${BUILD_TIME[ffmpeg]}"
         echo
         echo "## sha256 of sources"
         (cd "${DL}" && sha256sum \
@@ -354,7 +412,8 @@ write_manifest() {
             "brotli-${BROTLI_VER}.tar.gz" "freetype-${FREETYPE_VER}.tar.xz" \
             "harfbuzz-${HARFBUZZ_VER}.tar.xz" \
             "libxkbcommon-${XKBCOMMON_VER}.tar.xz" \
-            "libwpe-${LIBWPE_VER}.tar.xz")
+            "libwpe-${LIBWPE_VER}.tar.xz" \
+            "dav1d-${DAV1D_VER}.tar.xz" "ffmpeg-${FFMPEG_VER}.tar.xz")
     } > "${m}"
     cat "${m}"
 }
@@ -366,7 +425,7 @@ main() {
         || die "PS5_DEPS_PREFIX points into the target namespace (${PREFIX})"
     [[ -x "${SDK}/bin/prospero-clang" ]] || die "no PS5 payload SDK at ${SDK}"
     local t
-    for t in curl tar unzip perl make ninja cmake python3 gcc g++ bison; do
+    for t in curl tar unzip perl make ninja cmake python3 gcc g++ bison nasm pkg-config; do
         command -v "${t}" >/dev/null || die "missing host tool: ${t}"
     done
 
@@ -380,6 +439,8 @@ main() {
     build harfbuzz build_harfbuzz
     build xkbcommon build_xkbcommon
     build libwpe build_libwpe
+    build dav1d build_dav1d
+    build ffmpeg build_ffmpeg
 
     write_manifest
     touch "${PREFIX}/.done"
