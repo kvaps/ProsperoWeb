@@ -130,7 +130,8 @@ jobs:
           scripts/ci/timed.sh "apt" sudo apt-get install --assume-yes --no-install-recommends \
             clang-18 lld-18 llvm-18 cmake ninja-build ruby perl python3 gperf unifdef \
             pkg-config autoconf automake libtool bison flex wget unzip python3-pyelftools \
-            python3-venv curl ccache zip file zlib1g-dev imagemagick librsvg2-bin
+            python3-venv curl ccache zip file zlib1g-dev imagemagick librsvg2-bin \
+            nasm meson
           ccache --version | head -1
 
       - name: Artifact names and cache keys
