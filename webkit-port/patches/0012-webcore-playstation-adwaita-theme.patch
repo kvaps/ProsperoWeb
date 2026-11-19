@@ -83,7 +83,7 @@ index 4d950561d..61efb44cf 100644
 +
 +#endif // !USE(THEME_ADWAITA)
 diff --git a/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp b/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
-index 15a41e942..11d3de266 100644
+index 15a41e942..3ae70784d 100644
 --- a/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
 +++ b/Source/WebCore/rendering/adwaita/RenderThemeAdwaita.cpp
 @@ -213,11 +213,20 @@ String RenderThemeAdwaita::extraDefaultStyleSheet()
@@ -107,66 +107,23 @@ index 15a41e942..11d3de266 100644
      if (m_mediaControlsStyleSheet.isEmpty())
          m_mediaControlsStyleSheet = StringImpl::createWithoutCopying(ModernMediaControlsUserAgentStyleSheet);
      return { m_mediaControlsStyleSheet };
-@@ -345,6 +354,10 @@ void RenderThemeAdwaita::adjustMenuListStyle(Style::ComputedStyle& style, const
-     RenderTheme::adjustMenuListStyle(style, element);
-     style.setLineHeight(Style::ComputedStyle::initialLineHeight());
-     style.setTextAutosizingAdjustedLineHeight(Style::ComputedStyle::initialLineHeight());
-+#if PLATFORM(PLAYSTATION) && defined(PS5_HOMEBREW)
-+    // PS5 select theme fix: let CSS paint the closed select background.
-+    style.setUsedAppearance(StyleAppearance::MenulistButton);
-+#endif
- }
- 
- void RenderThemeAdwaita::adjustMenuListButtonStyle(Style::ComputedStyle& style, const Element* element) const
 diff --git a/Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp b/Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp
-index 3cdfc90a3..68645abbf 100644
+index 3cdfc90a3..46e4471b0 100644
 --- a/Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp
 +++ b/Source/WebCore/rendering/playstation/RenderThemePlayStation.cpp
-@@ -26,6 +26,10 @@
- 
+@@ -27,6 +27,9 @@
  #include "config.h"
  #include "RenderThemePlayStation.h"
-+#include "StyleComputedStyle+SettersInlines.h"
-+
+ 
 +// Superseded by the Adwaita theme (PS5 homebrew build, USE_THEME_ADWAITA).
 +#if !USE(THEME_ADWAITA)
- 
++
  #include <wtf/NeverDestroyed.h>
  
-@@ -37,4 +41,22 @@ RenderThemePlayStation& RenderTheme::singleton()
-     return theme;
+ namespace WebCore {
+@@ -38,3 +41,5 @@ RenderThemePlayStation& RenderTheme::singleton()
  }
  
-+// PS5 select visual style fix: render the closed control using author CSS.
-+// Verified workaround: `appearance: none` on the select paints dark/white
-+// OnePlayer controls correctly and preserves the WebKit native popup behavior.
-+// This is a test candidate: it disables the browser-drawn select decorations,
-+// so verify default selects and arrow appearance before an upstream submission.
-+void RenderThemePlayStation::adjustMenuListStyle(Style::ComputedStyle& style, const Element* element) const
-+{
-+    RenderTheme::adjustMenuListStyle(style, element);
-+    style.setUsedAppearance(StyleAppearance::None);
-+}
-+
-+void RenderThemePlayStation::adjustMenuListButtonStyle(Style::ComputedStyle& style, const Element*) const
-+{
-+    style.setUsedAppearance(StyleAppearance::None);
-+}
-+
  } // namespace WebCore
 +
 +#endif // !USE(THEME_ADWAITA)
-diff --git a/Source/WebCore/rendering/playstation/RenderThemePlayStation.h b/Source/WebCore/rendering/playstation/RenderThemePlayStation.h
-index 035b6c78c..84cf2c3d1 100644
---- a/Source/WebCore/rendering/playstation/RenderThemePlayStation.h
-+++ b/Source/WebCore/rendering/playstation/RenderThemePlayStation.h
-@@ -33,6 +33,9 @@ namespace WebCore {
- class RenderThemePlayStation final : public RenderTheme {
- public:
-     friend NeverDestroyed<RenderThemePlayStation>;
-+
-+    void adjustMenuListStyle(Style::ComputedStyle&, const Element*) const final;
-+    void adjustMenuListButtonStyle(Style::ComputedStyle&, const Element*) const final;
- };
- 
- } // namespace WebCore

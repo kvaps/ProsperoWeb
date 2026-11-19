@@ -106,7 +106,7 @@ index 162edd286..ce7d2bb2c 100644
  }
 +#endif // defined(PS5_HOMEBREW)
 diff --git a/Source/WebKit/PlatformPlayStation.cmake b/Source/WebKit/PlatformPlayStation.cmake
-index 0a6968d20..f13dc1684 100644
+index 0a6968d20..8caba173f 100644
 --- a/Source/WebKit/PlatformPlayStation.cmake
 +++ b/Source/WebKit/PlatformPlayStation.cmake
 @@ -1,6 +1,22 @@
@@ -132,20 +132,7 @@ index 0a6968d20..f13dc1684 100644
  WEBKIT_ADD_TARGET_CXX_FLAGS(WebKit -Wno-unused-lambda-capture)
  
  list(APPEND WebProcess_SOURCES
-@@ -36,6 +52,12 @@ list(APPEND WebKit_SOURCES
- 
-     NetworkProcess/NetworkDataTaskDataURL.cpp
- 
-+    # Curl backend of NetworkCache::Data (ctors, span, tryCreateSharedMemory,
-+    # ...). Unreferenced until ENABLE_CONTENT_EXTENSIONS pulled in the content
-+    # rule list store (APIContentRuleListStore createExtension), so the port
-+    # never compiled it; GTK/WPE compile the GLib variant the same way.
-+    NetworkProcess/cache/NetworkCacheDataCurl.cpp
-+
-     NetworkProcess/Classifier/WebResourceLoadStatisticsStore.cpp
- 
-     Platform/IPC/unix/ArgumentCodersUnix.cpp
-@@ -69,7 +91,7 @@ list(APPEND WebKit_SOURCES
+@@ -69,7 +85,7 @@ list(APPEND WebKit_SOURCES
  
      UIProcess/API/C/playstation/WKContextConfigurationPlayStation.cpp
      UIProcess/API/C/playstation/WKPagePrivatePlayStation.cpp
@@ -154,7 +141,7 @@ index 0a6968d20..f13dc1684 100644
      UIProcess/API/C/playstation/WKView.cpp
  
      UIProcess/CoordinatedGraphics/DrawingAreaProxyCoordinatedGraphics.cpp
-@@ -176,7 +198,7 @@ list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS
+@@ -176,7 +192,7 @@ list(APPEND WebKit_PUBLIC_FRAMEWORK_HEADERS
  
      UIProcess/API/C/playstation/WKContextConfigurationPlayStation.h
      UIProcess/API/C/playstation/WKPagePrivatePlayStation.h
