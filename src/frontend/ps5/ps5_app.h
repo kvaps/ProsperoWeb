@@ -28,6 +28,7 @@
 #include "ps5_engine_view.h"
 #include "ps5_ime.h"
 #include "ps5_presenter.h"
+#include "ps5_popup_menu.h"
 #include "ps5_touchpad.h"
 #include "ps5_video_overlay.h"
 
@@ -122,6 +123,7 @@ class Ps5App {
   // controller holds a pointer to it, so it is declared (and outlives) first.
   std::unique_ptr<Ps5ImeTextInput> ime_input_;
   std::unique_ptr<shell::ShellController> controller_;
+  Ps5PopupMenu popup_menu_;
 
   // Content cache: ARGB32 (what WKPagePaint writes), the active view painted
   // at y = content_top(); only dirty areas are repainted. With the video

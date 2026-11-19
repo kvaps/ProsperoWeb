@@ -1,0 +1,17 @@
+diff --git a/Source/WebCore/platform/graphics/adwaita/MenuListAdwaita.cpp b/Source/WebCore/platform/graphics/adwaita/MenuListAdwaita.cpp
+index bd5f330af..e34050fbf 100644
+--- a/Source/WebCore/platform/graphics/adwaita/MenuListAdwaita.cpp
++++ b/Source/WebCore/platform/graphics/adwaita/MenuListAdwaita.cpp
+@@ -45,7 +45,11 @@ void MenuListAdwaita::draw(GraphicsContext& graphicsContext, const FloatRoundedR
+ {
+     GraphicsContextStateSaver stateSaver(graphicsContext);
+ 
+-    ButtonControlAdwaita::drawButton(graphicsContext, borderRect, deviceScaleFactor, style);
++#if PLATFORM(PLAYSTATION)
++    // Let CSS paint styled select backgrounds; keep the native arrow.
++    if (m_owningPart.get()->type() != StyleAppearance::MenulistButton)
++#endif
++        ButtonControlAdwaita::drawButton(graphicsContext, borderRect, deviceScaleFactor, style);
+ 
+     auto zoomedArrowSize = menuListButtonArrowSize * style.zoomFactor;
+     FloatRect fieldRect = borderRect.rect();

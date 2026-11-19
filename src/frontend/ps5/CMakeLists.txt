@@ -78,6 +78,7 @@ set(_frontend_sources
   ps5_cpu_monitor.cpp
   ps5_ime.cpp
   ps5_presenter.cpp
+  ps5_popup_menu.cpp
   ps5_log.cpp
   ps5_runtime_env.cpp
   ps5_splash_text.cpp

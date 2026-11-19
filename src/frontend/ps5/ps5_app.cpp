@@ -715,8 +715,11 @@ void Ps5App::frame() {
     ime_input_->poll();
   }
   pump_sdl_events();
-  handle_axis_motion();
+  if (!popup_menu_.visible()) handle_axis_motion();
   handle_touchpad(now);
+  if (popup_menu_.visible() && pad_)
+    popup_menu_.scrollStick(SDL_GameControllerGetAxis(pad_, SDL_CONTROLLER_AXIS_RIGHTY) / 32767.0f,
+                            now, pending_damage_);
   if (share_down_ && !share_long_fired_ && now - share_down_ticks_ >= kShareLongPressMs) {
     share_long_fired_ = true;
     screenshot_pending_ = true;
@@ -787,6 +790,8 @@ void Ps5App::pump_sdl_events() {
         // Key events carry no text: printable characters arrive separately
         // as SDL_TEXTINPUT and are inserted below, so they are not typed twice.
         std::uint32_t code = dom_key_code(e.key.keysym.sym);
+        if (popup_menu_.consumeKey(static_cast<int>(code), e.type == SDL_KEYDOWN, pending_damage_))
+          break;
         auto* view = controller_->active_view();
         if (view && code != 0) {
           view->key(code, dom_modifiers(SDL_GetModState()), e.type == SDL_KEYDOWN,
@@ -814,6 +819,7 @@ void Ps5App::handle_controller_button(const SDL_ControllerButtonEvent& e, bool p
   if (!b) {
     return;
   }
+  if (popup_menu_.consumeButton(*b, pressed, pending_damage_)) return;
   if (*b == core::Button::Share) {
     // Decided on release: a long press (see frame()) is a screen dump and
     // never reaches the shell; a short one is delivered as a whole.
@@ -984,6 +990,7 @@ void Ps5App::handle_touchpad(std::uint64_t now) {
     touchpad_aspect_ = touchpad_.aspect();
     controller_->set_touchpad_aspect(touchpad_aspect_);
   }
+  if (popup_menu_.consumeTouchpad(touch_contacts_, now, pending_damage_)) return;
   controller_->on_touchpad(touch_contacts_, now);
 }
 
@@ -1146,6 +1153,14 @@ void Ps5App::composite_and_present() {
     return;
   }
 
+  // The popup proxy lives in WebKit UIProcess and is queried only from the UI
+  // thread. Keep its SDL overlay in the same damage pipeline as other layers.
+  WKPageRef active_page = nullptr;
+  if (auto* view = static_cast<Ps5EngineView*>(controller_->active_view()))
+    active_page = view->web().page();
+  popup_menu_.update(active_page, controller_->content_top(), width_, height_, pending_damage_,
+                     ui_view(runtime_assets_dir() + "/fonts/NotoSans-Regular.ttf"));
+
   // 1. Bring the content and chrome caches up to date (dirty areas only);
   //    their damage accumulates until it is composed.
   paint_content();
@@ -1249,6 +1264,10 @@ void Ps5App::composite_and_present() {
     }
     display::compose_rect(layers, chrome_rects, clipped, static_cast<std::uint32_t*>(surface->pixels),
                           surface->pitch / 4, videos);
+    // Native WebKit select popup sits above video, page and chrome.
+    if (popup_menu_.visible())
+      popup_menu_.draw(static_cast<std::uint32_t*>(surface->pixels), surface->pitch / 4,
+                       surface->format, clipped);
     if (pointer) {
       display::draw_pointer(static_cast<std::uint32_t*>(surface->pixels), surface->pitch / 4,
                             clipped, pointer_x, pointer_y);

@@ -1,0 +1,164 @@
+diff --git a/Source/WebKit/UIProcess/playstation/PageClientImpl.cpp b/Source/WebKit/UIProcess/playstation/PageClientImpl.cpp
+index d5d6744c3..9ce1bcf1e 100644
+--- a/Source/WebKit/UIProcess/playstation/PageClientImpl.cpp
++++ b/Source/WebKit/UIProcess/playstation/PageClientImpl.cpp
+@@ -25,6 +25,13 @@
+ 
+ #include "config.h"
+ #include "PageClientImpl.h"
++#include "WKAPICast.h"
++#include "WebPopupItem.h"
++#include "WebPopupMenuProxy.h"
++#include <WebCore/IntRect.h>
++#include <algorithm>
++#include <wtf/text/CString.h>
++#include <cstring>
+ 
+ #include "DrawingAreaProxyCoordinatedGraphics.h"
+ #include "PlayStationWebView.h"
+@@ -213,10 +220,85 @@ void PageClientImpl::doneWithTouchEvent(const WebTouchEvent& event, bool wasEven
+ }
+ #endif // ENABLE(TOUCH_EVENTS)
+ 
+-RefPtr<WebPopupMenuProxy> PageClientImpl::createPopupMenuProxy(WebPageProxy&  pageProxy)
+-{
+-    notImplemented();
+-    return { };
++// Native PS5 select menu bridge. WebKit retains the proxy, while the foreground
++// frontend polls it through the PlayStation C API (no JavaScript injection).
++// One visible popup across the application, as with a desktop native popup.
++class PlayStationPopupMenuProxy;
++static PlayStationPopupMenuProxy* activePlayStationPopup = nullptr;
++
++class PlayStationPopupMenuProxy final : public WebPopupMenuProxy {
++public:
++    static Ref<PlayStationPopupMenuProxy> create(WebPageProxy& page)
++    {
++        return adoptRef(*new PlayStationPopupMenuProxy(page));
++    }
++
++    ~PlayStationPopupMenuProxy() override { hidePopupMenu(); }
++
++    void showPopupMenu(const WebCore::IntRect& rect, WebCore::TextDirection, double,
++        const Vector<WebPopupItem>& items, const PlatformPopupMenuData&, int32_t selectedIndex) override
++    {
++        if (activePlayStationPopup && activePlayStationPopup != this)
++            activePlayStationPopup->hidePopupMenu();
++        m_items = items;
++        m_rect = rect;
++        m_selected = selectedIndex;
++        m_visible = true;
++        activePlayStationPopup = this;
++    }
++
++    void hidePopupMenu() override
++    {
++        m_visible = false;
++        if (activePlayStationPopup == this)
++            activePlayStationPopup = nullptr;
++    }
++
++    bool matches(WebPageProxy* page) const { return m_visible && m_page == page; }
++    const WebCore::IntRect& rect() const { return m_rect; }
++    int count() const { return static_cast<int>(m_items.size()); }
++    int selected() const { return m_selected; }
++    const WebPopupItem* item(int index) const
++    {
++        if (index < 0 || static_cast<size_t>(index) >= m_items.size())
++            return nullptr;
++        return &m_items[static_cast<size_t>(index)];
++    }
++
++    void activate(int index)
++    {
++        auto* entry = item(index);
++        if (!entry || entry->m_type != WebPopupItem::Type::Item || !entry->m_isEnabled || entry->m_isLabel)
++            return;
++        if (CheckedPtr checkedClient = client()) {
++            checkedClient->setTextFromItemForPopupMenu(this, index);
++            checkedClient->valueChangedForPopupMenu(this, index);
++        }
++        hidePopupMenu();
++    }
++
++    void cancel()
++    {
++        // WPE's menu-close callback sends the old selection, preserving it.
++        if (CheckedPtr checkedClient = client())
++            checkedClient->valueChangedForPopupMenu(this, m_selected);
++        hidePopupMenu();
++    }
++
++private:
++    explicit PlayStationPopupMenuProxy(WebPageProxy& page)
++        : WebPopupMenuProxy(page.popupMenuClient()), m_page(&page) { }
++
++    WebPageProxy* m_page = nullptr;
++    WebCore::IntRect m_rect;
++    Vector<WebPopupItem> m_items;
++    int m_selected = -1;
++    bool m_visible = false;
++};
++
++RefPtr<WebPopupMenuProxy> PageClientImpl::createPopupMenuProxy(WebPageProxy& pageProxy)
++{
++    return PlayStationPopupMenuProxy::create(pageProxy);
+ }
+ 
+ #if USE(GRAPHICS_LAYER_WC)
+@@ -369,3 +451,55 @@ UnixFileDescriptor PageClientImpl::hostFileDescriptor()
+ #endif
+ 
+ } // namespace WebKit
++
++// Exported from this translation unit to avoid a second cross-module state
++// registry. WebKit's proxy remains the single owner of each popup.
++extern "C" bool WKPagePopupMenuInfoPlayStation(WKPageRef page, int* count,
++    int* selectedIndex, int* x, int* y, int* width, int* height)
++{
++    auto* popup = WebKit::activePlayStationPopup;
++    if (!page || !popup || !popup->matches(WebKit::toImpl(page)))
++        return false;
++    const auto& rect = popup->rect();
++    if (count) *count = popup->count();
++    if (selectedIndex) *selectedIndex = popup->selected();
++    if (x) *x = rect.x();
++    if (y) *y = rect.y();
++    if (width) *width = rect.width();
++    if (height) *height = rect.height();
++    return true;
++}
++
++extern "C" bool WKPagePopupMenuItemPlayStation(WKPageRef page, int index,
++    char* label, size_t labelBytes, bool* isSelectable)
++{
++    auto* popup = WebKit::activePlayStationPopup;
++    if (!page || !popup || !popup->matches(WebKit::toImpl(page)))
++        return false;
++    const auto* item = popup->item(index);
++    if (!item)
++        return false;
++    if (isSelectable)
++        *isSelectable = item->m_type == WebKit::WebPopupItem::Type::Item && item->m_isEnabled && !item->m_isLabel;
++    if (label && labelBytes) {
++        auto utf8 = item->m_text.utf8();
++        const size_t used = std::min(labelBytes - 1, static_cast<size_t>(utf8.length()));
++        memcpy(label, utf8.data(), used);
++        label[used] = '\0';
++    }
++    return true;
++}
++
++extern "C" void WKPagePopupMenuActivatePlayStation(WKPageRef page, int index)
++{
++    auto* popup = WebKit::activePlayStationPopup;
++    if (page && popup && popup->matches(WebKit::toImpl(page)))
++        popup->activate(index);
++}
++
++extern "C" void WKPagePopupMenuCancelPlayStation(WKPageRef page)
++{
++    auto* popup = WebKit::activePlayStationPopup;
++    if (page && popup && popup->matches(WebKit::toImpl(page)))
++        popup->cancel();
++}
