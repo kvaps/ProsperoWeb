@@ -4,6 +4,16 @@ All notable changes to ProsperoWeb are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.3.1 - 2026-11-24
+
+### Fixed
+
+- ProsperoStore installs failing with "The file doesn't match the listing". The catalog record for v0.3.0 pinned a sha256 that did not match the published `PRWB00001.zip` asset, so the store refused the download.
+
+### Changed
+
+- `scripts/store-record.sh` generates the store catalog record from a published release, taking the artifact hash from the GitHub API, so the recorded digest always matches the published bytes.
+
 ## v0.3.0 - 2026-11-19
 
 ### Added
