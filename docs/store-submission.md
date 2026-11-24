@@ -71,6 +71,22 @@ Trade-off of the custom prefix, for the operator to confirm before the first pub
 
 Screenshots for the README or the GitHub release (the catalog takes none). Without third-party marks: `docs/screenshots/host-demo-chrome.png`, `host-chrome-events.png`, `host-osk-page-field.png`, `host-video-mp4.png` (Big Buck Bunny, CC BY), `host-video-hls.png` (Mux test stream). Avoid `host-page-wikipedia.png`, `host-osk.png`, `host-menu-bookmarks.png`, `host-fullscreen.png` (a Wikipedia article about the PS5, with its product imagery) and `host-drm-notice.png` (names Netflix). These are host (WebKitGTK) shots; real console shots can be taken later with the browser's screenshot feature.
 
+## Releasing
+
+After the release workflow has attached `PRWB00001.zip` to the release and the
+release is **published**, generate the catalog record from the published
+release and propose it as `apps/PRWB00001.json`:
+
+```
+scripts/store-record.sh v0.3.1 --write   # prints the record, updates docs/store/PRWB00001.json
+```
+
+`sha256` comes from GitHub's digest of the published asset. Never hash a local
+build: the store compares the downloaded bytes against the record, so the
+hash is only correct once the final asset is up. The v0.3.0 record was filled
+from a local zip before the uploaded artifact existed, every install failed
+with "The file doesn't match the listing", and the fix needed a new release.
+
 ## Draft record
 
 [`docs/store/PRWB00001.json`](store/PRWB00001.json) is a valid catalog **reservation** record (release fields `null`), ready to be proposed as `apps/PRWB00001.json` if the operator decides to reserve the title ID. For the first release it becomes:
@@ -81,13 +97,13 @@ Screenshots for the README or the GitHub release (the catalog takes none). Witho
   "name": "ProsperoWeb",
   "kind": "app",
   "category": "utilities",
-  "description": "A WebKit web browser for the PS5, driven by the controller, with tabs, bookmarks and video playback.",
+  "description": "A WebKit web browser for the PS5, driven by the controller: tabs, bookmarks, video playback, an ad blocker and SponsorBlock.",
   "license": "GPL-3.0-or-later",
   "author": "kvaps",
   "version": "0.1.0",
   "source_repo": "https://github.com/kvaps/ProsperoWeb",
   "artifact_url": "https://github.com/kvaps/ProsperoWeb/releases/download/v0.1.0/PRWB00001.zip",
-  "sha256": "<sha256 of PRWB00001.zip, lowercase hex>",
+  "sha256": "<from scripts/store-record.sh, lowercase hex>",
   "icon_url": "https://raw.githubusercontent.com/kvaps/ProsperoWeb/v0.1.0/assets/sce_sys/icon0.png"
 }
 ```
